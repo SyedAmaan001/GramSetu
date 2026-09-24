@@ -154,10 +154,20 @@ export default function AdminPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant={p.verified ? "default" : "secondary"} className="cursor-pointer" onClick={() => toggle(p, "verified")}>
+                  <Badge
+                    variant={p.verified ? "default" : "secondary"}
+                    className="cursor-pointer"
+                    render={<button type="button" aria-label={`Toggle verified status for ${p.name}`} />}
+                    onClick={() => toggle(p, "verified")}
+                  >
                     {p.verified ? "Verified" : "Unverified"}
                   </Badge>
-                  <Badge variant={p.available ? "default" : "outline"} className="cursor-pointer" onClick={() => toggle(p, "available")}>
+                  <Badge
+                    variant={p.available ? "default" : "outline"}
+                    className="cursor-pointer"
+                    render={<button type="button" aria-label={`Toggle availability for ${p.name}`} />}
+                    onClick={() => toggle(p, "available")}
+                  >
                     {p.available ? "Available" : "Unavailable"}
                   </Badge>
                   <Button size="sm" variant="destructive" disabled={busy} onClick={() => remove(p)}>
