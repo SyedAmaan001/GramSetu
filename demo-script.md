@@ -4,10 +4,10 @@ Exact click path for the live pitch, with a fallback for every step. Update this
 
 ## Setup before you walk on stage
 
+- [ ] Live URL: **https://gramsetu-delta.vercel.app** — confirm it loads. `npm run dev` (`localhost:3000`) is the fallback if venue wifi is unreliable.
 - [ ] Laptop on charger, do-not-disturb on, browser zoom at 100%.
-- [ ] Confirm the deployed URL loads (or `npm run dev` running locally as the fallback).
-- [ ] Confirm venue wifi works; if not, switch to phone hotspot or run fully local (`localhost:3000` — the pipeline needs no internet once the app is loaded, since it runs on in-memory/local data by default).
-- [ ] Open three tabs in advance: `/` (landing), `/demo`, `/demo/sms`. Keep `/admin` in a fourth tab, logged in, for the trust-layer beat.
+- [ ] Confirm venue wifi works; if not, switch to phone hotspot or run fully local — the pipeline needs no internet once the app is loaded, since it runs on in-memory data by default.
+- [ ] Open three tabs in advance: `/` (landing), `/demo`, `/demo/sms`. Keep `/admin` in a fourth tab, logged in, for the trust-layer beat. (Admin password is in the team's shared secrets, not in this file — ask whoever set it up if you don't have it.)
 - [ ] If presenting voice: test the mic once in the actual room (ambient noise, mic permissions) before going live.
 
 ## The path
@@ -45,7 +45,7 @@ Exact click path for the live pitch, with a fallback for every step. Update this
    *Fallback: if you can't re-authenticate live, skip the toggle-and-reask and just narrate what it does over the static listing view.*
 
 7. **Close** — 15 seconds.
-   One line: "Everything you saw runs with zero external API keys except deployment — the moment we add Sarvam, ElevenLabs, and a real Twilio number, this becomes the exact same product in production." State what's next (Supabase persistence, Vercel deployment) honestly as next steps, not as already done.
+   One line: "Everything you saw is live in production right now, running on zero external API keys — the moment we add Sarvam, ElevenLabs, a real Twilio number, and a persistent Supabase directory, this becomes the exact same product with real data behind it." State what's next (Supabase persistence, real voice/SMS providers) honestly as next steps, not as already done.
 
 ## If everything breaks
 
