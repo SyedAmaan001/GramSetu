@@ -69,7 +69,12 @@ export default function DemoPage() {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col gap-4 p-4 sm:p-8">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">GramConnect — live demo</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-semibold tracking-tight">GramConnect — live demo</h1>
+          <a href="/demo/sms" className="text-xs text-muted-foreground underline underline-offset-2">
+            Try the SMS view →
+          </a>
+        </div>
         <p className="text-sm text-muted-foreground">
           Ask in your own words, like you would ask a neighbour. Every answer is checked
           against a verified local directory — the system will say so when it can&apos;t verify.
