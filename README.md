@@ -4,6 +4,8 @@
 
 Built for **PS-02 "GramConnect"**, Track 04 (Rural Innovation), Innovators Conclave 2026 — a 24-hour hackathon.
 
+**Live demo: https://gramsetu-delta.vercel.app** — try `/demo`, `/demo/sms`, and `/admin` directly, no setup required.
+
 > "I need a plumber near my village."
 > → GramConnect finds Ravi Plumbing Works, 3.2 km away, verified by the village admin, available today, with a phone number to call. If nothing verified exists nearby, it says so honestly instead of guessing.
 
@@ -49,7 +51,7 @@ This is an active 24-hour build; status below is accurate as of the last commit.
 | **3b. Real SMS channel** — Twilio webhook (`/api/sms`) + web SMS-simulator fallback (`/demo/sms`) | ✅ Built; webhook tested via curl against Twilio's exact POST format, ready to wire to a live number |
 | Sarvam AI + ElevenLabs voice upgrade (nicer Kannada quality than the browser default) | ⏳ Optional, if those accounts get set up |
 | Supabase-backed persistence (currently running on an in-memory fallback) | ⏳ Blocked on a Supabase project being created |
-| Deployment (Vercel) | ⏳ Blocked on a Vercel login |
+| Deployment (Vercel) | ✅ Live at https://gramsetu-delta.vercel.app, auto-deploys on push to `main` |
 
 All three MVP features run today with **zero external API keys** — the pipeline, voice, and admin console all fall back to browser-native APIs and an in-memory, clearly-labeled demo directory (`lib/data/directory-seed.ts`) until real credentials are supplied, then upgrade automatically. See "What we deliberately did not build" below.
 
