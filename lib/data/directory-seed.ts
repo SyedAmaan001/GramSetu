@@ -29,3 +29,21 @@ export const KNOWN_VILLAGES = ["Hosahalli", "Channapatna", "Doddaballapur"];
 export const KNOWN_CATEGORIES = Array.from(
   new Set(DIRECTORY_SEED.map((p) => p.category))
 );
+
+/**
+ * Words a resident might actually say that map to a known category —
+ * used by the keyword-fallback intent parser (lib/pipeline/understand.ts)
+ * when no ANTHROPIC_API_KEY is configured. Keep in sync with KNOWN_CATEGORIES.
+ */
+export const CATEGORY_SYNONYMS: Record<string, string[]> = {
+  plumber: ["plumb", "pipe", "leak", "tap", "faucet", "drainage"],
+  electrician: ["electric", "wiring", "wireman", "power cut", "switch board", "mcb", "fuse"],
+  mechanic: ["vehicle", "car repair", "bike repair", "auto repair", "engine", "puncture"],
+  tailor: ["stitch", "sewing", "clothes", "blouse", "dress"],
+  carpenter: ["furniture", "wood work", "carpentry", "door repair"],
+  beautician: ["parlour", "parlor", "beauty", "salon", "haircut", "makeup"],
+  borewell: ["bore well", "water well", "drilling", "groundwater"],
+  painter: ["painting", "paint", "whitewash"],
+  "appliance repair": ["ac repair", "fridge", "refrigerator", "washing machine", "appliance", "cooler"],
+  mason: ["masonry", "construction work", "brick work", "cement work"],
+};

@@ -1,19 +1,23 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { KNOWN_CATEGORIES, KNOWN_VILLAGES } from "@/lib/data/directory-seed";
+import { CATEGORY_SYNONYMS, KNOWN_CATEGORIES, KNOWN_VILLAGES } from "@/lib/data/directory-seed";
 import type { UnderstoodRequest } from "@/lib/pipeline/types";
 
 const KANNADA_RANGE = /[ಀ-೿]/;
 
-/** Very small keyword fallback used when no ANTHROPIC_API_KEY is configured. */
+function matchCategory(lower: string): string | null {
+  const direct = KNOWN_CATEGORIES.find((c) => lower.includes(c));
+  if (direct) return direct;
+
+  for (const [category, synonyms] of Object.entries(CATEGORY_SYNONYMS)) {
+    if (synonyms.some((word) => lower.includes(word))) return category;
+  }
+  return null;
+}
+
+/** Keyword + synonym fallback used when no ANTHROPIC_API_KEY is configured. */
 function understandWithKeywords(text: string): UnderstoodRequest {
   const lower = text.toLowerCase();
-  const category =
-    KNOWN_CATEGORIES.find((c) => lower.includes(c)) ??
-    (lower.includes("plumb") ? "plumber" : null) ??
-    (lower.includes("electric") ? "electrician" : null) ??
-    (lower.includes("mechanic") || lower.includes("vehicle") ? "mechanic" : null) ??
-    null;
-
+  const category = matchCategory(lower);
   const village = KNOWN_VILLAGES.find((v) => lower.includes(v.toLowerCase())) ?? null;
   const language = KANNADA_RANGE.test(text) ? "kn" : "en";
 
