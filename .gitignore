@@ -42,7 +42,8 @@ yarn-error.log*
 next-env.d.ts
 
 # local CODER working files — not part of the submission, kept out of the
-# shared repo so they don't conflict with the teammate's edits on GitHub
+# shared repo so they don't conflict with the teammate's edits on GitHub.
+# demo-script.md is NOT in this list on purpose: it's a real team
+# deliverable (the pitch run-sheet), not a Claude-only scratch file.
 /CLAUDE.md
 /PROGRESS.md
-/demo-script.md

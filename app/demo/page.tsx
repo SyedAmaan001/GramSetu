@@ -125,7 +125,7 @@ export default function DemoPage() {
         ))}
       </div>
 
-      <Card className="flex-1">
+      <Card className="max-h-[55vh] min-h-[220px] flex-1 overflow-y-auto sm:max-h-[50vh]">
         <CardContent className="flex flex-col gap-3 p-4">
           {messages.length === 0 && (
             <p className="text-sm text-muted-foreground">
