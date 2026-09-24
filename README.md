@@ -31,26 +31,27 @@ Resident request (web chat / voice / SMS)
  4. Respond         — a sourced, actionable answer ("Ravi Plumbing, 3.2km, verified
         │              by Village Admin, call +91...") or an honest "couldn't verify"
         ▼
- Delivered over: web chat demo · voice (planned) · SMS (planned)
+ Delivered over: web chat · browser voice (English/Kannada) · real SMS (Twilio) · SMS simulator
 ```
 
 One shared pipeline (`lib/pipeline/`) powers every channel — no duplicated logic between web, voice and SMS.
 
 ## What's built vs. planned
 
-This is an active 24-hour build; status below is accurate as of the last commit (see [PROGRESS.md](PROGRESS.md) for the live log).
+This is an active 24-hour build; status below is accurate as of the last commit.
 
 | Feature | Status |
 |---|---|
 | **1. Verified-answer pipeline** (understand → retrieve → verify → respond) | ✅ Built and browser-tested end-to-end |
 | **1a. Web chat demo** (`/demo`) | ✅ Built |
-| **3a. Admin verification console** (`/admin`) — add/verify/toggle/remove listings | ✅ Built |
-| **2. Multilingual voice** (Sarvam ASR + ElevenLabs/Sarvam TTS, English + Kannada) | ⏳ Planned next |
-| **3b. Real SMS channel** (Twilio, live number) + web SMS-simulator fallback | ⏳ Planned next |
+| **2. Multilingual voice** (English/Kannada via the browser's built-in speech APIs — zero API keys) | ✅ Built; UI verified, real mic/speaker test pending |
+| **3a. Admin verification console** (`/admin`) — add/verify/toggle/remove listings | ✅ Built and verified live (a verify toggle immediately changes what `/demo` returns) |
+| **3b. Real SMS channel** — Twilio webhook (`/api/sms`) + web SMS-simulator fallback (`/demo/sms`) | ✅ Built; webhook tested via curl against Twilio's exact POST format, ready to wire to a live number |
+| Sarvam AI + ElevenLabs voice upgrade (nicer Kannada quality than the browser default) | ⏳ Optional, if those accounts get set up |
 | Supabase-backed persistence (currently running on an in-memory fallback) | ⏳ Blocked on a Supabase project being created |
 | Deployment (Vercel) | ⏳ Blocked on a Vercel login |
 
-Everything above the line runs today with **zero external API keys** — the pipeline and admin console fall back to an in-memory, clearly-labeled demo directory (`lib/data/directory-seed.ts`) and keyword-based intent parsing until real credentials are supplied, then upgrade automatically. See "What we deliberately did not build" below.
+All three MVP features run today with **zero external API keys** — the pipeline, voice, and admin console all fall back to browser-native APIs and an in-memory, clearly-labeled demo directory (`lib/data/directory-seed.ts`) until real credentials are supplied, then upgrade automatically. See "What we deliberately did not build" below.
 
 ## Try it locally
 
@@ -91,9 +92,8 @@ lib/
 supabase/schema.sql, seed.sql  # Postgres schema + seed for the real directory
 docs/problem-statement.md      # condensed official PS-02 brief
 docs/idea.md                    # our scoped-down concept and MVP reasoning
-PROGRESS.md                     # live build log (done / next / known bugs / demo-path status)
 ```
 
 ## Responsible AI note
 
-Directory listings in this prototype are **fictional demo data** (e.g. "Ravi Plumbing Works"), clearly labeled as such in [PROGRESS.md](PROGRESS.md) and never presented as real deployed data. The system is designed to disclose uncertainty ("couldn't verify") rather than fabricate a confident-sounding answer, and to always attribute a source for verified information. No real resident data is collected or processed in this prototype.
+Directory listings in this prototype are **fictional demo data** (e.g. "Ravi Plumbing Works") and never presented as real deployed data. The system is designed to disclose uncertainty ("couldn't verify") rather than fabricate a confident-sounding answer, and to always attribute a source for verified information. No real resident data is collected or processed in this prototype.

@@ -40,3 +40,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local CODER working files — not part of the submission, kept out of the
+# shared repo so they don't conflict with the teammate's edits on GitHub
+/CLAUDE.md
+/PROGRESS.md
+/demo-script.md
