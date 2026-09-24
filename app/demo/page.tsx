@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import type { PipelineResult } from "@/lib/pipeline/types";
+import { isVoiceSupported, useBrowserVoice, type VoiceLang } from "@/lib/hooks/use-browser-voice";
 
 type ChatMessage =
   | { role: "user"; text: string }
@@ -22,8 +23,15 @@ export default function DemoPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [voiceLang, setVoiceLang] = useState<VoiceLang>("en-IN");
+  const [voiceSupported, setVoiceSupported] = useState(false);
+  const { listen, listening, speak } = useBrowserVoice(voiceLang);
 
-  async function send(text: string) {
+  useEffect(() => {
+    setVoiceSupported(isVoiceSupported());
+  }, []);
+
+  async function send(text: string, spokenReply = false) {
     const trimmed = text.trim();
     if (!trimmed || loading) return;
 
@@ -39,6 +47,7 @@ export default function DemoPage() {
       });
       const result: PipelineResult = await res.json();
       setMessages((prev) => [...prev, { role: "assistant", result }]);
+      if (spokenReply) speak(result.reply);
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -66,6 +75,42 @@ export default function DemoPage() {
           against a verified local directory — the system will say so when it can&apos;t verify.
         </p>
       </header>
+
+      <div className="flex flex-wrap items-center gap-2">
+        {voiceSupported ? (
+          <>
+            <Button
+              type="button"
+              size="sm"
+              variant={listening ? "destructive" : "default"}
+              disabled={loading}
+              onClick={() => listen((transcript) => send(transcript, true))}
+            >
+              {listening ? "Listening…" : "🎤 Speak"}
+            </Button>
+            <div className="flex overflow-hidden rounded-md border">
+              <button
+                type="button"
+                className={`px-2 py-1 text-xs ${voiceLang === "en-IN" ? "bg-primary text-primary-foreground" : "bg-background"}`}
+                onClick={() => setVoiceLang("en-IN")}
+              >
+                English
+              </button>
+              <button
+                type="button"
+                className={`px-2 py-1 text-xs ${voiceLang === "kn-IN" ? "bg-primary text-primary-foreground" : "bg-background"}`}
+                onClick={() => setVoiceLang("kn-IN")}
+              >
+                ಕನ್ನಡ
+              </button>
+            </div>
+          </>
+        ) : (
+          <p className="text-xs text-muted-foreground">
+            Voice input needs Chrome or Edge — falling back to text only in this browser.
+          </p>
+        )}
+      </div>
 
       <div className="flex flex-wrap gap-2">
         {EXAMPLES.map((ex) => (
