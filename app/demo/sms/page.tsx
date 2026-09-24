@@ -44,8 +44,8 @@ export default function SmsSimulatorPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-sm flex-col gap-3 bg-neutral-100 p-4 dark:bg-neutral-900">
-      <header className="rounded-lg bg-white p-3 text-center shadow-sm dark:bg-neutral-800">
+    <main className="mx-auto flex min-h-screen w-full max-w-sm flex-col gap-3 bg-muted p-4">
+      <header className="rounded-lg bg-card p-3 text-center shadow-sm">
         <p className="text-xs text-muted-foreground">SMS · no smartphone or internet needed</p>
         <p className="font-semibold">GramConnect</p>
         <a href="/demo" className="text-xs text-muted-foreground underline underline-offset-2">
@@ -53,7 +53,7 @@ export default function SmsSimulatorPage() {
         </a>
       </header>
 
-      <div className="flex flex-1 flex-col gap-2 overflow-y-auto rounded-lg bg-white p-3 shadow-sm dark:bg-neutral-800">
+      <div className="flex flex-1 flex-col gap-2 overflow-y-auto rounded-lg bg-card p-3 shadow-sm">
         {messages.length === 0 && (
           <p className="text-center text-xs text-muted-foreground">
             Send a text like &ldquo;I need a plumber near my village&rdquo;
@@ -64,8 +64,8 @@ export default function SmsSimulatorPage() {
             key={i}
             className={
               m.role === "resident"
-                ? "ml-auto max-w-[80%] rounded-2xl rounded-br-sm bg-green-500 px-3 py-2 text-sm text-white"
-                : "mr-auto max-w-[80%] rounded-2xl rounded-bl-sm bg-neutral-200 px-3 py-2 text-sm dark:bg-neutral-700"
+                ? "ml-auto max-w-[80%] rounded-2xl rounded-br-sm bg-primary px-3 py-2 text-sm text-primary-foreground"
+                : "mr-auto max-w-[80%] rounded-2xl rounded-bl-sm bg-muted px-3 py-2 text-sm"
             }
           >
             {m.text}
