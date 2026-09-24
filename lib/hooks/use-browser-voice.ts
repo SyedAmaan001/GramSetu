@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, useSyncExternalStore } from "react";
 
 /**
  * Voice loop using the browser's built-in speech APIs — zero API keys,
@@ -36,6 +36,19 @@ function getSpeechRecognition(): (new () => SpeechRecognitionLike) | null {
 
 export function isVoiceSupported(): boolean {
   return getSpeechRecognition() !== null && typeof window !== "undefined" && "speechSynthesis" in window;
+}
+
+const noopSubscribe = () => () => {};
+
+/**
+ * Hydration-safe "is voice supported" check: renders `false` on the server
+ * and during the initial client render (matching SSR output), then flips to
+ * the real value. Uses useSyncExternalStore instead of a setState-in-effect
+ * "isMounted" pattern, since the value never changes after mount and this
+ * is the pattern React recommends for read-only browser feature detection.
+ */
+export function useVoiceSupported(): boolean {
+  return useSyncExternalStore(noopSubscribe, isVoiceSupported, () => false);
 }
 
 export function useBrowserVoice(lang: VoiceLang) {

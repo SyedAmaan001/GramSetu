@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import type { PipelineResult } from "@/lib/pipeline/types";
-import { isVoiceSupported, useBrowserVoice, type VoiceLang } from "@/lib/hooks/use-browser-voice";
+import { useBrowserVoice, useVoiceSupported, type VoiceLang } from "@/lib/hooks/use-browser-voice";
 
 type ChatMessage =
   | { role: "user"; text: string }
@@ -24,12 +24,8 @@ export default function DemoPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [voiceLang, setVoiceLang] = useState<VoiceLang>("en-IN");
-  const [voiceSupported, setVoiceSupported] = useState(false);
+  const voiceSupported = useVoiceSupported();
   const { listen, listening, speak } = useBrowserVoice(voiceLang);
-
-  useEffect(() => {
-    setVoiceSupported(isVoiceSupported());
-  }, []);
 
   async function send(text: string, spokenReply = false) {
     const trimmed = text.trim();
