@@ -2,7 +2,7 @@ import { KNOWN_CATEGORIES } from "@/lib/data/directory-seed";
 import type { PipelineResult, ServiceProvider, UnderstoodRequest } from "@/lib/pipeline/types";
 
 function describe(provider: ServiceProvider): string {
-  const status = provider.verified ? `verified by ${provider.source}` : "not yet verified";
+  const status = provider.verified ? `verified (source: ${provider.source})` : "not yet verified";
   const availability = provider.available ? "available now" : "currently unavailable";
   return `${provider.name} — ${provider.distanceKm} km away in ${provider.village}, ${availability}, ${status}. Contact: ${provider.phone}.`;
 }

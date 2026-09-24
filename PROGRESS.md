@@ -11,6 +11,7 @@ H0 = hackathon start. Update this after every meaningful step.
 - Built the shared pipeline (`lib/pipeline/{understand,retrieve,respond,index}.ts`): works with **zero API keys** via an in-memory seed directory (`lib/data/directory-seed.ts`) and keyword-based intent extraction; automatically upgrades to Claude + Supabase once `ANTHROPIC_API_KEY` / Supabase env vars are set (see `.env.example`).
 - `supabase/schema.sql` + `supabase/seed.sql` written (not yet run against a real project — no Supabase project created yet).
 - Built `/demo` web chat UI on `/api/query`. **Verified in the browser**: "I need a plumber near my village" returns a real verified match (Ravi Plumbing Works, 3.2km, Village Admin-verified) with ranked alternatives; "I need a lawyer" honestly declines instead of guessing. This is the H4-H10 vertical-slice milestone — done well ahead of schedule.
+- Built `/admin` console (password-gated: `ADMIN_PASSWORD` env var, defaults to `demo` in local dev only) with full add/verify/toggle-availability/remove CRUD, backed by the same in-memory store (auto-upgrades to Supabase once configured) via `lib/data/directory-store.ts` and `app/api/admin/listings/route.ts`. This is the trust-layer half of MVP feature 3. `npm run build` passes with `/admin` included.
 
 ## In progress
 
@@ -21,8 +22,7 @@ H0 = hackathon start. Update this after every meaningful step.
 1. Deploy skeleton to Vercel (blocked on user's Vercel login — see below).
 2. Create the real Supabase project and run `schema.sql` + `seed.sql` (currently running on the in-memory fallback only).
 3. Voice layer (Sarvam ASR + ElevenLabs/Sarvam TTS) per the fallback ladder in `docs/idea.md`.
-4. Twilio SMS webhook + web SMS-simulator fallback panel.
-5. `/admin` verify/CRUD page.
+4. Twilio SMS webhook + web SMS-simulator fallback panel (the other half of MVP feature 3).
 
 ## Known bugs
 

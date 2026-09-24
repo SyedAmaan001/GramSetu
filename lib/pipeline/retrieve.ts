@@ -1,5 +1,6 @@
 import { getSupabase } from "@/lib/clients/supabase";
-import { DIRECTORY_SEED } from "@/lib/data/directory-seed";
+import { mapRowToProvider } from "@/lib/clients/map-provider-row";
+import { listProviders } from "@/lib/data/directory-store";
 import type { ServiceProvider, UnderstoodRequest } from "@/lib/pipeline/types";
 
 function rank(providers: ServiceProvider[]): ServiceProvider[] {
@@ -21,23 +22,12 @@ async function retrieveFromSupabase(understood: UnderstoodRequest): Promise<Serv
   const { data, error } = await query;
   if (error || !data) return null;
 
-  return data.map((row) => ({
-    id: row.id,
-    name: row.name,
-    category: row.category,
-    village: row.village,
-    distanceKm: Number(row.distance_km),
-    phone: row.phone,
-    available: row.available,
-    verified: row.verified,
-    source: row.source,
-    updatedAt: row.updated_at,
-  }));
+  return data.map(mapRowToProvider);
 }
 
-function retrieveFromSeed(understood: UnderstoodRequest): ServiceProvider[] {
+function retrieveFromStore(understood: UnderstoodRequest): ServiceProvider[] {
   if (!understood.category) return [];
-  return DIRECTORY_SEED.filter(
+  return listProviders().filter(
     (p) =>
       p.category === understood.category &&
       (!understood.village || p.village === understood.village)
@@ -46,6 +36,6 @@ function retrieveFromSeed(understood: UnderstoodRequest): ServiceProvider[] {
 
 export async function retrieve(understood: UnderstoodRequest): Promise<ServiceProvider[]> {
   const fromDb = await retrieveFromSupabase(understood);
-  const matches = fromDb ?? retrieveFromSeed(understood);
+  const matches = fromDb ?? retrieveFromStore(understood);
   return rank(matches);
 }
