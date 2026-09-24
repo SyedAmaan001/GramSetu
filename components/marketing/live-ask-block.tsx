@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { HoldToTalkButton } from "@/components/marketing/hold-to-talk-button";
 import { VoicePoweredOrb } from "@/components/marketing/voice-orb";
 import { useBrowserVoice, useVoiceSupported, type VoiceLang } from "@/lib/hooks/use-browser-voice";
+import { useServerVoice } from "@/lib/hooks/use-server-voice";
 import type { PipelineResult } from "@/lib/pipeline/types";
 
 /** The live "ask GramSetu" block on the home page — same /api/query pipeline as /demo and /demo/sms. */
@@ -17,6 +18,7 @@ export function LiveAskBlock() {
   const [lang, setLang] = useState<VoiceLang>("en-IN");
   const voiceSupported = useVoiceSupported();
   const { listen, stop, speak, listening } = useBrowserVoice(lang);
+  const serverVoice = useServerVoice();
 
   async function ask(text: string) {
     const trimmed = text.trim();
@@ -31,7 +33,9 @@ export function LiveAskBlock() {
       });
       const data: PipelineResult = await res.json();
       setResult(data);
-      speak(data.reply);
+      // Real ElevenLabs TTS first, browser speechSynthesis if that fails.
+      const spokenByServer = await serverVoice.speak(data.reply);
+      if (!spokenByServer) speak(data.reply);
     } finally {
       setLoading(false);
     }

@@ -74,7 +74,7 @@ async function understandWithGemini(text: string): Promise<UnderstoodRequest> {
   for (const key of GEMINI_KEYS) {
     try {
       const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${key}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -83,14 +83,17 @@ async function understandWithGemini(text: string): Promise<UnderstoodRequest> {
           }),
         }
       );
-      if (!res.ok) continue;
+      if (!res.ok) {
+        console.error(`[understandWithGemini] ${res.status} ${res.statusText}`);
+        continue;
+      }
 
       const data = await res.json();
       const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text;
       if (!raw) continue;
       return parseLLMJson(raw, text);
-    } catch {
-      // try next key
+    } catch (err) {
+      console.error("[understandWithGemini] request failed:", err);
     }
   }
   throw new Error("no Gemini key succeeded");
@@ -109,7 +112,7 @@ export async function understand(text: string): Promise<UnderstoodRequest> {
     try {
       return await understandWithGemini(text);
     } catch {
-      // fall through to the keyword fallback
+      // every key failed — fall through to the keyword fallback
     }
   }
 
