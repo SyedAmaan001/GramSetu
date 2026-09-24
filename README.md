@@ -1,4 +1,4 @@
-# GramConnect
+# GramSetu
 
 **A last-mile access platform that turns a rural resident's plain-language request into a verified, local, actionable answer — over web chat, voice, or SMS.**
 
