@@ -7,7 +7,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import type { PipelineResult } from "@/lib/pipeline/types";
-import { useBrowserVoice, useVoiceSupported, type VoiceLang } from "@/lib/hooks/use-browser-voice";
+import { useBrowserVoice, type VoiceLang } from "@/lib/hooks/use-browser-voice";
+import { useServerVoice } from "@/lib/hooks/use-server-voice";
 
 type ChatMessage =
   | { role: "user"; text: string }
@@ -24,8 +25,9 @@ export default function DemoPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [voiceLang, setVoiceLang] = useState<VoiceLang>("en-IN");
-  const voiceSupported = useVoiceSupported();
-  const { listen, listening, speak } = useBrowserVoice(voiceLang);
+  const [voiceError, setVoiceError] = useState("");
+  const browserVoice = useBrowserVoice(voiceLang);
+  const serverVoice = useServerVoice();
 
   async function send(text: string, spokenReply = false) {
     const trimmed = text.trim();
@@ -43,7 +45,12 @@ export default function DemoPage() {
       });
       const result: PipelineResult = await res.json();
       setMessages((prev) => [...prev, { role: "assistant", result }]);
-      if (spokenReply) speak(result.reply);
+
+      if (spokenReply) {
+        // Fallback ladder: real ElevenLabs TTS first, browser speechSynthesis if that fails.
+        const spokenByServer = await serverVoice.speak(result.reply);
+        if (!spokenByServer) browserVoice.speak(result.reply);
+      }
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -62,6 +69,40 @@ export default function DemoPage() {
     }
   }
 
+  async function handleMicClick() {
+    setVoiceError("");
+
+    if (serverVoice.recording) {
+      const result = await serverVoice.stopAndTranscribe();
+      if (result?.transcript) {
+        send(result.transcript, true);
+      } else {
+        // Real transcription failed (Sarvam unreachable, empty audio, etc.) —
+        // fall back to the browser's built-in recognition for this turn.
+        browserVoice.listen((transcript) => send(transcript, true));
+      }
+      return;
+    }
+
+    const started = await serverVoice.startRecording();
+    if (!started) {
+      // No mic access via getUserMedia — try the browser's built-in speech
+      // recognition instead; if that's unsupported too, tell the user.
+      browserVoice.listen((transcript) => send(transcript, true));
+      if (!browserVoice.listening) {
+        setVoiceError("Couldn't access the microphone in this browser.");
+      }
+    }
+  }
+
+  const micLabel = serverVoice.recording
+    ? "⏹ Stop"
+    : serverVoice.transcribing
+      ? "Transcribing…"
+      : browserVoice.listening
+        ? "Listening…"
+        : "🎤 Speak";
+
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col gap-4 p-4 sm:p-8">
       <header className="space-y-1">
@@ -78,39 +119,32 @@ export default function DemoPage() {
       </header>
 
       <div className="flex flex-wrap items-center gap-2">
-        {voiceSupported ? (
-          <>
-            <Button
-              type="button"
-              size="sm"
-              variant={listening ? "destructive" : "default"}
-              disabled={loading}
-              onClick={() => listen((transcript) => send(transcript, true))}
-            >
-              {listening ? "Listening…" : "🎤 Speak"}
-            </Button>
-            <div className="flex overflow-hidden rounded-md border">
-              <button
-                type="button"
-                className={`px-2 py-1 text-xs ${voiceLang === "en-IN" ? "bg-primary text-primary-foreground" : "bg-background"}`}
-                onClick={() => setVoiceLang("en-IN")}
-              >
-                English
-              </button>
-              <button
-                type="button"
-                className={`px-2 py-1 text-xs ${voiceLang === "kn-IN" ? "bg-primary text-primary-foreground" : "bg-background"}`}
-                onClick={() => setVoiceLang("kn-IN")}
-              >
-                ಕನ್ನಡ
-              </button>
-            </div>
-          </>
-        ) : (
-          <p className="text-xs text-muted-foreground">
-            Voice input needs Chrome or Edge — falling back to text only in this browser.
-          </p>
-        )}
+        <Button
+          type="button"
+          size="sm"
+          variant={serverVoice.recording || browserVoice.listening ? "destructive" : "default"}
+          disabled={loading || serverVoice.transcribing}
+          onClick={handleMicClick}
+        >
+          {micLabel}
+        </Button>
+        <div className="flex overflow-hidden rounded-md border">
+          <button
+            type="button"
+            className={`px-2 py-1 text-xs ${voiceLang === "en-IN" ? "bg-primary text-primary-foreground" : "bg-background"}`}
+            onClick={() => setVoiceLang("en-IN")}
+          >
+            English
+          </button>
+          <button
+            type="button"
+            className={`px-2 py-1 text-xs ${voiceLang === "kn-IN" ? "bg-primary text-primary-foreground" : "bg-background"}`}
+            onClick={() => setVoiceLang("kn-IN")}
+          >
+            ಕನ್ನಡ
+          </button>
+        </div>
+        {voiceError && <p className="text-xs text-destructive">{voiceError}</p>}
       </div>
 
       <div className="flex flex-wrap gap-2">
