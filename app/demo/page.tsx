@@ -7,8 +7,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import type { PipelineResult } from "@/lib/pipeline/types";
-import { useBrowserVoice, type VoiceLang } from "@/lib/hooks/use-browser-voice";
-import { useServerVoice } from "@/lib/hooks/use-server-voice";
+import type { VoiceLang } from "@/lib/hooks/use-browser-voice";
+import { useVoiceConversation } from "@/lib/hooks/use-voice-conversation";
 
 type ChatMessage =
   | { role: "user"; text: string }
@@ -25,9 +25,8 @@ export default function DemoPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [voiceLang, setVoiceLang] = useState<VoiceLang>("en-IN");
-  const [voiceError, setVoiceError] = useState("");
-  const browserVoice = useBrowserVoice(voiceLang);
-  const serverVoice = useServerVoice();
+  const voice = useVoiceConversation(voiceLang, (transcript) => send(transcript, true));
+  const voiceActive = voice.status === "recording" || voice.status === "listening";
 
   async function send(text: string, spokenReply = false) {
     const trimmed = text.trim();
@@ -43,14 +42,11 @@ export default function DemoPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: trimmed }),
       });
+      if (!res.ok) throw new Error(`query failed: ${res.status}`);
       const result: PipelineResult = await res.json();
       setMessages((prev) => [...prev, { role: "assistant", result }]);
 
-      if (spokenReply) {
-        // Fallback ladder: real ElevenLabs TTS first, browser speechSynthesis if that fails.
-        const spokenByServer = await serverVoice.speak(result.reply);
-        if (!spokenByServer) browserVoice.speak(result.reply);
-      }
+      if (spokenReply) await voice.speakReply(result.reply);
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -69,38 +65,16 @@ export default function DemoPage() {
     }
   }
 
-  async function handleMicClick() {
-    setVoiceError("");
-
-    if (serverVoice.recording) {
-      const result = await serverVoice.stopAndTranscribe();
-      if (result?.transcript) {
-        send(result.transcript, true);
-      } else {
-        // Real transcription failed (Sarvam unreachable, empty audio, etc.) —
-        // fall back to the browser's built-in recognition for this turn.
-        browserVoice.listen((transcript) => send(transcript, true));
-      }
-      return;
-    }
-
-    const started = await serverVoice.startRecording();
-    if (!started) {
-      // No mic access via getUserMedia — try the browser's built-in speech
-      // recognition instead; if that's unsupported too, tell the user.
-      browserVoice.listen((transcript) => send(transcript, true));
-      if (!browserVoice.listening) {
-        setVoiceError("Couldn't access the microphone in this browser.");
-      }
-    }
+  function handleMicClick() {
+    if (voiceActive) voice.stop();
+    else voice.start();
   }
 
-  const micLabel = serverVoice.recording
-    ? "⏹ Stop"
-    : serverVoice.transcribing
-      ? "Transcribing…"
-      : browserVoice.listening
-        ? "Listening…"
+  const micLabel =
+    voice.status === "recording" || voice.status === "listening"
+      ? "⏹ Stop"
+      : voice.status === "transcribing"
+        ? "Transcribing…"
         : "🎤 Speak";
 
   return (
@@ -122,8 +96,8 @@ export default function DemoPage() {
         <Button
           type="button"
           size="sm"
-          variant={serverVoice.recording || browserVoice.listening ? "destructive" : "default"}
-          disabled={loading || serverVoice.transcribing}
+          variant={voiceActive ? "destructive" : "default"}
+          disabled={loading || voice.status === "transcribing"}
           onClick={handleMicClick}
         >
           {micLabel}
@@ -144,7 +118,8 @@ export default function DemoPage() {
             ಕನ್ನಡ
           </button>
         </div>
-        {voiceError && <p className="text-xs text-destructive">{voiceError}</p>}
+        {voiceActive && <p className="text-xs text-muted-foreground">Listening — tap Stop when you&apos;re done.</p>}
+        {voice.error && <p className="text-xs text-destructive">{voice.error}</p>}
       </div>
 
       <div className="flex flex-wrap gap-2">

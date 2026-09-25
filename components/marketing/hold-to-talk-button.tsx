@@ -38,10 +38,27 @@ export function HoldToTalkButton({ listening, onPressStart, onPressEnd, size = 8
       transition={listening ? { duration: 1.1, repeat: Infinity, ease: "easeInOut" } : { duration: 0.2 }}
       onPointerDown={(e) => {
         e.preventDefault();
-        if (!disabled) onPressStart();
+        if (disabled) return;
+        // Keep receiving pointer events even if the finger/cursor drifts off
+        // the button (or a permission prompt appears) while holding.
+        e.currentTarget.setPointerCapture(e.pointerId);
+        onPressStart();
       }}
       onPointerUp={onPressEnd}
-      onPointerLeave={() => listening && onPressEnd()}
+      onPointerCancel={onPressEnd}
+      onKeyDown={(e) => {
+        if ((e.key === " " || e.key === "Enter") && !e.repeat && !disabled) {
+          e.preventDefault();
+          onPressStart();
+        }
+      }}
+      onKeyUp={(e) => {
+        if (e.key === " " || e.key === "Enter") {
+          e.preventDefault();
+          onPressEnd();
+        }
+      }}
+      onContextMenu={(e) => e.preventDefault()}
     >
       {listening && (
         <motion.span

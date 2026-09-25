@@ -25,11 +25,17 @@ function matchCategory(lower: string): string | null {
   return null;
 }
 
+/** Speech-to-text often splits village names ("Hosa Halli"), so compare with spaces removed. */
+function matchVillage(text: string): string | null {
+  const squashed = text.toLowerCase().replace(/\s+/g, "");
+  return KNOWN_VILLAGES.find((v) => squashed.includes(v.toLowerCase())) ?? null;
+}
+
 /** Keyword + synonym fallback used when no LLM provider is configured or reachable. */
 function understandWithKeywords(text: string): UnderstoodRequest {
   const lower = text.toLowerCase();
   const category = matchCategory(lower);
-  const village = KNOWN_VILLAGES.find((v) => lower.includes(v.toLowerCase())) ?? null;
+  const village = matchVillage(text);
   const language = KANNADA_RANGE.test(text) ? "kn" : "en";
 
   return { category, village, language, rawText: text };
@@ -49,7 +55,7 @@ function parseLLMJson(raw: string, text: string): UnderstoodRequest {
   const parsed = JSON.parse(cleaned);
   return {
     category: parsed.category ?? null,
-    village: parsed.village ?? null,
+    village: parsed.village ? matchVillage(parsed.village) : null,
     language: parsed.language === "kn" ? "kn" : "en",
     rawText: text,
   };

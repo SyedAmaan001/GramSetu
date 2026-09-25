@@ -19,7 +19,7 @@ type SpeechRecognitionLike = {
   interimResults: boolean;
   continuous: boolean;
   onresult: ((event: { results: { [index: number]: { [index: number]: { transcript: string } } } }) => void) | null;
-  onerror: (() => void) | null;
+  onerror: ((event: { error?: string }) => void) | null;
   onend: (() => void) | null;
   start: () => void;
   stop: () => void;
@@ -51,14 +51,30 @@ export function useVoiceSupported(): boolean {
   return useSyncExternalStore(noopSubscribe, isVoiceSupported, () => false);
 }
 
+/** True if *any* voice-input path works: recording for Sarvam, or the browser's own recognition. */
+function isMicSupported(): boolean {
+  if (typeof window === "undefined") return false;
+  const canRecord = Boolean(navigator.mediaDevices?.getUserMedia) && typeof MediaRecorder !== "undefined";
+  return canRecord || getSpeechRecognition() !== null;
+}
+
+export function useMicSupported(): boolean {
+  return useSyncExternalStore(noopSubscribe, isMicSupported, () => false);
+}
+
+const KANNADA_RANGE = /[ಀ-೿]/;
+
 export function useBrowserVoice(lang: VoiceLang) {
   const [listening, setListening] = useState(false);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
 
   const listen = useCallback(
-    (onTranscript: (text: string) => void) => {
+    (onTranscript: (text: string) => void, onError?: (error: string) => void): boolean => {
       const Recognition = getSpeechRecognition();
-      if (!Recognition) return;
+      if (!Recognition) {
+        onError?.("unsupported");
+        return false;
+      }
 
       const recognition = new Recognition();
       recognition.lang = lang;
@@ -69,12 +85,21 @@ export function useBrowserVoice(lang: VoiceLang) {
         const transcript = event.results[0][0].transcript;
         onTranscript(transcript);
       };
-      recognition.onerror = () => setListening(false);
+      recognition.onerror = (event) => {
+        setListening(false);
+        onError?.(event.error ?? "unknown");
+      };
       recognition.onend = () => setListening(false);
 
       recognitionRef.current = recognition;
+      try {
+        recognition.start();
+      } catch {
+        onError?.("start-failed");
+        return false;
+      }
       setListening(true);
-      recognition.start();
+      return true;
     },
     [lang]
   );
@@ -88,9 +113,11 @@ export function useBrowserVoice(lang: VoiceLang) {
     (text: string) => {
       if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
       window.speechSynthesis.cancel();
+      // Speak in the reply's language, not whichever toggle is selected.
+      const replyLang = KANNADA_RANGE.test(text) ? "kn-IN" : lang;
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = lang;
-      const voice = window.speechSynthesis.getVoices().find((v) => v.lang === lang);
+      utterance.lang = replyLang;
+      const voice = window.speechSynthesis.getVoices().find((v) => v.lang === replyLang);
       if (voice) utterance.voice = voice;
       window.speechSynthesis.speak(utterance);
     },

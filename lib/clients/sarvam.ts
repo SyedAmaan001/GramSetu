@@ -48,6 +48,29 @@ export async function sarvamSpeechToText(
   return { transcript: data.transcript, languageCode: data.language_code ?? null };
 }
 
+/**
+ * Text-to-speech via Sarvam's Bulbul model — unlike ElevenLabs, it actually
+ * speaks Kannada, so it's the first choice for Kannada replies. Returns WAV bytes.
+ */
+export async function sarvamTextToSpeech(text: string, languageCode: "kn-IN" | "en-IN"): Promise<ArrayBuffer | null> {
+  if (SARVAM_KEYS.length === 0 || !text.trim()) return null;
+
+  const res = await withKeyRotation((key) =>
+    fetch("https://api.sarvam.ai/text-to-speech", {
+      method: "POST",
+      headers: { "api-subscription-key": key, "Content-Type": "application/json" },
+      body: JSON.stringify({ text, target_language_code: languageCode, model: "bulbul:v3" }),
+    })
+  );
+
+  if (!res || !res.ok) return null;
+  const data = await res.json();
+  const base64: string | undefined = data?.audios?.[0];
+  if (!base64) return null;
+  const bytes = Buffer.from(base64, "base64");
+  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+}
+
 export async function sarvamTranslate(
   text: string,
   sourceLanguageCode: string,
