@@ -53,7 +53,7 @@ export default function DemoPage() {
         {
           role: "assistant",
           result: {
-            reply: "Something went wrong reaching GramConnect. Please try again.",
+            reply: "Something went wrong reaching GramSetu. Please try again.",
             understood: { category: null, village: null, language: "en", rawText: trimmed },
             matches: [],
             verified: false,
@@ -81,7 +81,7 @@ export default function DemoPage() {
     <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col gap-4 p-4 sm:p-8">
       <header className="space-y-1">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold tracking-tight">GramConnect — live demo</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">GramSetu — live demo</h1>
           <a href="/demo/sms" className="text-xs text-muted-foreground underline underline-offset-2">
             Try the SMS view →
           </a>
@@ -167,7 +167,7 @@ export default function DemoPage() {
             )
           )}
 
-          {loading && <p className="text-xs text-muted-foreground">GramConnect is checking the directory…</p>}
+          {loading && <p className="text-xs text-muted-foreground">GramSetu is checking the directory…</p>}
         </CardContent>
       </Card>
 

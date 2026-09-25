@@ -47,7 +47,7 @@ export default function SmsSimulatorPage() {
     <main className="mx-auto flex min-h-screen w-full max-w-sm flex-col gap-3 bg-muted p-4">
       <header className="rounded-lg bg-card p-3 text-center shadow-sm">
         <p className="text-xs text-muted-foreground">SMS · no smartphone or internet needed</p>
-        <p className="font-semibold">GramConnect</p>
+        <p className="font-semibold">GramSetu</p>
         <a href="/demo" className="text-xs text-muted-foreground underline underline-offset-2">
           ← Back to chat/voice demo
         </a>

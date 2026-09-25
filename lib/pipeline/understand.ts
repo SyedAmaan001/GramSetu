@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { CATEGORY_SYNONYMS, KNOWN_CATEGORIES, KNOWN_VILLAGES } from "@/lib/data/directory-seed";
+import { CATEGORY_SYNONYMS, KNOWN_CATEGORIES, KNOWN_VILLAGES, VILLAGE_ALIASES } from "@/lib/data/directory-seed";
+import { sarvamTranslate } from "@/lib/clients/sarvam";
 import type { UnderstoodRequest } from "@/lib/pipeline/types";
 
 const KANNADA_RANGE = /[ಀ-೿]/;
@@ -25,18 +26,33 @@ function matchCategory(lower: string): string | null {
   return null;
 }
 
-/** Speech-to-text often splits village names ("Hosa Halli"), so compare with spaces removed. */
+/**
+ * Speech-to-text often splits village names ("Hosa Halli") or returns them
+ * in Kannada script / another spelling, so compare with spaces removed
+ * against the name and its aliases.
+ */
 function matchVillage(text: string): string | null {
   const squashed = text.toLowerCase().replace(/\s+/g, "");
-  return KNOWN_VILLAGES.find((v) => squashed.includes(v.toLowerCase())) ?? null;
+  return (
+    KNOWN_VILLAGES.find((v) =>
+      [v, ...(VILLAGE_ALIASES[v] ?? [])].some((name) => squashed.includes(name.toLowerCase()))
+    ) ?? null
+  );
 }
 
-/** Keyword + synonym fallback used when no LLM provider is configured or reachable. */
-function understandWithKeywords(text: string): UnderstoodRequest {
-  const lower = text.toLowerCase();
-  const category = matchCategory(lower);
-  const village = matchVillage(text);
+/**
+ * Keyword + synonym fallback used when no LLM provider is configured or
+ * reachable. Kannada is translated to English first (Sarvam) so it gets the
+ * full synonym list; Kannada keywords in the synonym list cover the case
+ * where translation is down too.
+ */
+async function understandWithKeywords(text: string): Promise<UnderstoodRequest> {
   const language = KANNADA_RANGE.test(text) ? "kn" : "en";
+  const english = language === "kn" ? await sarvamTranslate(text, "kn-IN", "en-IN") : null;
+  const searchable = `${text} ${english ?? ""}`;
+
+  const category = matchCategory(searchable.toLowerCase());
+  const village = matchVillage(searchable);
 
   return { category, village, language, rawText: text };
 }
@@ -76,8 +92,20 @@ async function understandWithClaude(text: string): Promise<UnderstoodRequest> {
   return parseLLMJson(raw, text);
 }
 
+// Gemini's free tier often 429s/503s; cap how long a resident can be kept
+// waiting before we drop to the keyword fallback.
+const GEMINI_ATTEMPT_TIMEOUT_MS = 4000;
+const GEMINI_TOTAL_BUDGET_MS = 6000;
+// After every key fails, skip Gemini for a while instead of making each
+// following request wait out the same failures (a simple circuit breaker).
+const GEMINI_COOLDOWN_MS = 60_000;
+let geminiDownUntil = 0;
+
 async function understandWithGemini(text: string): Promise<UnderstoodRequest> {
+  const deadline = Date.now() + GEMINI_TOTAL_BUDGET_MS;
   for (const key of GEMINI_KEYS) {
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) break;
     try {
       const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${key}`,
@@ -87,6 +115,7 @@ async function understandWithGemini(text: string): Promise<UnderstoodRequest> {
           body: JSON.stringify({
             contents: [{ parts: [{ text: `${LLM_INSTRUCTIONS}\n\nMessage: ${text}` }] }],
           }),
+          signal: AbortSignal.timeout(Math.min(GEMINI_ATTEMPT_TIMEOUT_MS, remaining)),
         }
       );
       if (!res.ok) {
@@ -102,6 +131,7 @@ async function understandWithGemini(text: string): Promise<UnderstoodRequest> {
       console.error("[understandWithGemini] request failed:", err);
     }
   }
+  geminiDownUntil = Date.now() + GEMINI_COOLDOWN_MS;
   throw new Error("no Gemini key succeeded");
 }
 
@@ -114,7 +144,7 @@ export async function understand(text: string): Promise<UnderstoodRequest> {
     }
   }
 
-  if (GEMINI_KEYS.length > 0) {
+  if (GEMINI_KEYS.length > 0 && Date.now() >= geminiDownUntil) {
     try {
       return await understandWithGemini(text);
     } catch {

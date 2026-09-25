@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GramConnect",
+  title: "GramSetu",
   description: "A last-mile access platform for verified local services in rural communities.",
 };
 

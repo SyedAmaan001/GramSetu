@@ -30,9 +30,14 @@ export async function sarvamSpeechToText(
 ): Promise<{ transcript: string; languageCode: string | null } | null> {
   if (SARVAM_KEYS.length === 0) return null;
 
+  // Browsers label recordings like "audio/webm;codecs=opus"; Sarvam only
+  // accepts the bare type ("audio/webm"), so strip the codec parameters.
+  const baseType = audio.type.split(";")[0].trim() || "audio/webm";
+  const file = new Blob([await audio.arrayBuffer()], { type: baseType });
+
   const res = await withKeyRotation((key) => {
     const form = new FormData();
-    form.append("file", audio, filename);
+    form.append("file", file, filename);
     form.append("model", "saaras:v3");
     form.append("language_code", "unknown");
     return fetch("https://api.sarvam.ai/speech-to-text", {
@@ -42,7 +47,10 @@ export async function sarvamSpeechToText(
     });
   });
 
-  if (!res || !res.ok) return null;
+  if (!res || !res.ok) {
+    console.error(`[sarvamSpeechToText] ${res?.status ?? "no response"} ${res ? await res.text() : ""}`);
+    return null;
+  }
   const data = await res.json();
   if (!data.transcript) return null;
   return { transcript: data.transcript, languageCode: data.language_code ?? null };

@@ -26,6 +26,16 @@ export const DIRECTORY_SEED: ServiceProvider[] = [
 
 export const KNOWN_VILLAGES = ["Hosahalli", "Channapatna", "Doddaballapur"];
 
+/**
+ * Other ways a village name comes back from speech-to-text or translation
+ * (Kannada script, alternate romanizations). Compared with spaces removed.
+ */
+export const VILLAGE_ALIASES: Record<string, string[]> = {
+  Hosahalli: ["hosahali", "ಹೊಸಹಳ್ಳಿ"],
+  Channapatna: ["channapattana", "chennapatna", "chennapattana", "chanapatna", "ಚನ್ನಪಟ್ಟಣ", "ಚೆನ್ನಪಟ್ಟಣ"],
+  Doddaballapur: ["doddaballapura", "doddballapur", "ದೊಡ್ಡಬಳ್ಳಾಪುರ"],
+};
+
 export const KNOWN_CATEGORIES = Array.from(
   new Set(DIRECTORY_SEED.map((p) => p.category))
 );
@@ -36,9 +46,9 @@ export const KNOWN_CATEGORIES = Array.from(
  * when no ANTHROPIC_API_KEY is configured. Keep in sync with KNOWN_CATEGORIES.
  */
 export const CATEGORY_SYNONYMS: Record<string, string[]> = {
-  plumber: ["plumb", "pipe", "leak", "tap", "faucet", "drainage"],
-  electrician: ["electric", "wiring", "wireman", "power cut", "switch board", "mcb", "fuse"],
-  mechanic: ["vehicle", "car repair", "bike repair", "auto repair", "engine", "puncture"],
+  plumber: ["plumb", "pipe", "leak", "tap", "faucet", "drainage", "ಪ್ಲಂಬರ್", "ಪೈಪ್", "ನಲ್ಲಿ", "ನೀರು ಸೋರ"],
+  electrician: ["electric", "wiring", "wireman", "power cut", "switch board", "switchboard", "mcb", "fuse", "motor pump", "pump motor", "fan", "ಎಲೆಕ್ಟ್ರ", "ಕರೆಂಟ್", "ವಿದ್ಯುತ್", "ಮೋಟಾರ್ ಪಂಪ್", "ಪಂಪ್", "ಫ್ಯಾನ್"],
+  mechanic: ["vehicle", "car repair", "bike repair", "auto repair", "engine", "puncture", "ಮೆಕ್ಯಾನಿಕ್", "ಮೆಕಾನಿಕ್", "ಬೈಕ್", "ಗಾಡಿ"],
   tailor: ["stitch", "sewing", "clothes", "blouse", "dress"],
   carpenter: ["furniture", "wood work", "carpentry", "door repair"],
   beautician: ["parlour", "parlor", "beauty", "salon", "haircut", "makeup"],
