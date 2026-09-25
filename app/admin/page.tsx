@@ -93,7 +93,7 @@ export default function AdminPage() {
   if (!authorized) {
     return (
       <main className="mx-auto flex min-h-screen w-full max-w-sm flex-col justify-center gap-4 p-4">
-        <h1 className="text-xl font-semibold">GramConnect admin</h1>
+        <h1 className="text-xl font-semibold">GramSetu admin</h1>
         <p className="text-sm text-muted-foreground">
           Village admin console for verifying and managing local service listings.
         </p>
@@ -114,7 +114,7 @@ export default function AdminPage() {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-4 p-4 sm:p-8">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">GramConnect admin</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">GramSetu admin</h1>
         <p className="text-sm text-muted-foreground">
           Add, verify and manage the local service directory. Source: {source ?? "unknown"}
           {source === "in-memory" && " (no Supabase configured yet — changes reset on server restart)"}.
