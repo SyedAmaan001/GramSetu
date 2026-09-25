@@ -13,6 +13,8 @@
   --font-display: var(--font-fraunces);
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
+  --color-on-media: var(--on-media);
+  --color-scrim: var(--scrim);
   --color-accent-hover: var(--accent-hover);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -69,6 +71,8 @@
   --popover-foreground: #201f1b;
   --brand: #950f0d; /* Deep Red — brand name + major headings only */
   --brand-foreground: #f6efe3;
+  --on-media: #fbf3e6; /* Text over photos/video — same in both themes */
+  --scrim: #14100c; /* Darkening layer behind text on photos/video */
   --primary: #9c4c34; /* Muted Terracotta — primary CTA/accent */
   --primary-foreground: #fbf3e6;
   --accent-hover: #652b1d; /* Rosewood — hover/deeper accent */

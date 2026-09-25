@@ -15,8 +15,8 @@ export function HeroSection() {
 
   const videoOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0.15]);
   const videoScale = useTransform(scrollYProgress, [0, 1], [1, 1.15]);
-  const wordmarkScale = useTransform(scrollYProgress, [0, 0.6], [0.7, 1]);
-  const wordmarkOpacity = useTransform(scrollYProgress, [0, 0.4], [0.4, 1]);
+  // Fully legible from the first frame; scroll only adds a gentle zoom.
+  const wordmarkScale = useTransform(scrollYProgress, [0, 0.6], [0.92, 1.05]);
   const contentOpacity = useTransform(scrollYProgress, [0, 0.7, 1], [1, 1, 0]);
 
   function scrollToMain() {
@@ -36,15 +36,19 @@ export function HeroSection() {
         >
           <source src="/videos/village-hero.mp4" type="video/mp4" />
         </motion.video>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-background" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--color-scrim)_0%,transparent_70%)] opacity-75" />
+        <div className="absolute inset-0 bg-gradient-to-b from-scrim/40 via-transparent to-background" />
 
         <motion.div style={{ opacity: contentOpacity }} className="relative z-10 flex flex-col items-center gap-8 px-5 text-center">
-          <motion.h1
-            style={{ scale: wordmarkScale, opacity: wordmarkOpacity }}
-            className="font-display text-[clamp(3.5rem,14vw,9rem)] leading-none font-semibold text-brand drop-shadow-[0_4px_24px_rgba(0,0,0,0.35)]"
-          >
-            GramSetu
-          </motion.h1>
+          <motion.div style={{ scale: wordmarkScale }} className="flex flex-col items-center gap-3">
+            <h1 className="font-display text-[clamp(4.25rem,17vw,11.5rem)] leading-[0.9] font-bold tracking-tight text-on-media [text-shadow:0_2px_4px_var(--color-scrim),0_8px_40px_var(--color-scrim)]">
+              Gram<span className="italic">Setu</span>
+            </h1>
+            <span aria-hidden className="h-1 w-24 rounded-full bg-brand sm:w-32" />
+            <p className="max-w-xs px-2 text-sm font-medium text-on-media sm:max-w-md sm:px-0 [text-shadow:0_1px_12px_var(--color-scrim)] sm:text-lg">
+              A bridge between your village and verified help.
+            </p>
+          </motion.div>
 
           <SplitFlapText
             words={["ENTER SITE", "ASK. VERIFY.", "GO LIVE"]}
@@ -54,7 +58,7 @@ export function HeroSection() {
             onClick={scrollToMain}
           />
 
-          <div className="w-full max-w-xl text-sm font-medium text-background sm:text-base">
+          <div className="w-full max-w-xl text-sm font-medium text-on-media [text-shadow:0_1px_10px_var(--color-scrim)] sm:text-base">
             <ScrollMarquee text={"Ask in your own words. Get a verified, local answer — not a search result.  ·  "} defaultVelocity={1.6} />
             <ScrollMarquee text={"Voice, SMS, or web. No smartphone required.  ·  "} defaultVelocity={-1.6} />
           </div>
